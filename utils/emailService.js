@@ -11,6 +11,8 @@ async function sendWelcomeEmail(toEmail, username) {
 
   await transporter.sendMail(mailOptions);
 }
+
+
 async function sendTaskAssignmentEmail(toEmail, username, task) {
   const mailOptions = {
     from: `"HR Task Management" <${process.env.EMAIL_USER}>`,

@@ -3,7 +3,6 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const authRoutes = require('./routes/authRoutes');
-const productRoutes = require('./routes/productRoutes');
 const taskRoutes = require('./routes/taskRoutes');
 const todoRoutes = require('./routes/todoRoutes');
 dotenv.config();
@@ -14,7 +13,6 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/products', productRoutes);
 app.use('/api/tasks',taskRoutes);
 app.use('/api/todos',todoRoutes);
 // DB + Server

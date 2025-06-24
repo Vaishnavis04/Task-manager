@@ -1,29 +1,26 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { sendWelcomeEmail } = require('../utils/emailService');
+const crypto = require('crypto');
+const { sendWelcomeEmail,sendResetPasswordEmail } = require('../utils/emailService');
 
-// ✅ Signup: Create user, return message (no token)
+// ✅ Signup
 exports.signup = async (req, res) => {
-  const { username, password, email } = req.body;
+  const { email, password, username } = req.body;  // <-- Added username here
   try {
-    const existingUser = await User.findOne({ username });
-    if (existingUser) return res.status(400).json({ message: "Username already taken" });
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ message: "Email already registered" });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await User.create({
-      username,
+      email,
+      username,           // <-- Add username here
       password: hashedPassword,
-      email,   // Make sure User schema has email field if you want to save it
       role: 'user',
       enabled: true,
     });
 
-    // Send welcome email if email provided
-    if (email) {
-      await sendWelcomeEmail(email, username);
-    }
-
+    await sendWelcomeEmail(email);
     res.status(201).json({ message: "User registered successfully" });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -31,17 +28,22 @@ exports.signup = async (req, res) => {
 };
 
 
-
-
-// ✅ Login: Authenticate and return JWT + role
 exports.login = async (req, res) => {
-  const { username, password } = req.body;
+  const { email, password } = req.body;
+  console.log("LOGIN ATTEMPT:", email, password);
+
   try {
-    const user = await User.findOne({ username });
-    if (!user) return res.status(404).json({ message: "User not found" });
+    const user = await User.findOne({ email });
+    console.log("USER FOUND:", user);
+
+    if (!user || !user.enabled)
+      return res.status(404).json({ message: "User not found or disabled" });
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+    console.log("PASSWORD MATCH:", isMatch);
+
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid credentials" });
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -49,13 +51,10 @@ exports.login = async (req, res) => {
       { expiresIn: '1h' }
     );
 
-    res.status(200).json({
-      username: user.username,
-      role: user.role,
-      token,
-    });
+    return res.status(200).json({ email: user.email, role: user.role, token });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("LOGIN ERROR:", err);
+    return res.status(500).json({ message: err.message });
   }
 };
 

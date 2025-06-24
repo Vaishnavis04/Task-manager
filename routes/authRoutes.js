@@ -1,5 +1,6 @@
 const express = require('express');
-const { signup, login, getAllUsers, updateUserRole,
+const { signup, login,
+  getAllUsers, updateUserRole,
   updateUserStatus,
   deleteUserById,
  } = require('../controllers/authController');
