@@ -39,6 +39,9 @@ exports.login = async (req, res) => {
     if (!user || !user.enabled)
       return res.status(404).json({ message: "User not found or disabled" });
 
+    console.log("RAW INPUT PASSWORD:", password);
+    console.log("HASHED PASSWORD FROM DB:", user.password);
+
     const isMatch = await bcrypt.compare(password, user.password);
     console.log("PASSWORD MATCH:", isMatch);
 
@@ -57,6 +60,7 @@ exports.login = async (req, res) => {
     return res.status(500).json({ message: err.message });
   }
 };
+
 
 
 // ✅ Get all users (admin only)

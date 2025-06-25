@@ -27,14 +27,30 @@ exports.createTask = async (req, res) => {
 };
 
 // Admin - get all tasks
+// Admin - get all tasks with optional sorting
 exports.getAllTasks = async (req, res) => {
   try {
-    const tasks = await Task.find().populate('assignedTo', 'username');
+    const { sortBy } = req.query;
+
+    let sortOptions = {};
+
+    if (sortBy === 'priority') {
+      // Sort priority manually in frontend after fetch or change priority to numbers in DB
+      sortOptions = { priority: 1 }; // alphabetical: high, low, medium
+    } else if (sortBy === 'dueDate') {
+      sortOptions = { dueDate: 1 }; // ascending
+    }
+
+    const tasks = await Task.find()
+      .populate('assignedTo', 'username')
+      .sort(sortOptions);
+
     res.json(tasks);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 };
+
 
 // User - get own tasks
 exports.getMyTasks = async (req, res) => {
